@@ -1,0 +1,47 @@
+name: CICD workflow
+
+on:
+  workflow_dispatch: 
+    inputs:
+      environment:
+        default: dev
+        description: Select the branch
+        type: choice
+        options:
+          - dev
+          - prod
+          - sit
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    environment: ${{inputs.environment}}
+    name: IAC Build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install AWS cli
+        uses: ankurk91/install-aws-cli-action@v1
+      - name: Change directory
+        run: cd IAC/
+      - name: Configure AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Install terraform cli
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.14.6"
+      - name: Formatting IAC
+        run : |
+          terraform fmt
+          terraform init
+          terraform validate
+      - name: Plan
+        run: terraform plan
+    

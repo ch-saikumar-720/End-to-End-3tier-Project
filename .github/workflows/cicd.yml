@@ -20,15 +20,12 @@ jobs:
       run: 
         working-directory: IAC
     name: IAC Build
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Install AWS cli
         uses: ankurk91/install-aws-cli-action@v1
-      - name: Change directory
-        run: cd IAC/
       - name: Configure AWS CLI
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -42,18 +39,22 @@ jobs:
           terraform_version: "1.14.6"
       - name: Formatting IAC
         run : |
-          cd IAC/
           terraform fmt
           terraform init
           terraform validate
       - name: Plan
         run: |
-          cd IAC/
           terraform init
-          terraform plan
+          terraform plan -out=tfplan
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          plan: IAC/tfplan
  Apply:
    name: terraform apply
    runs-on: ubuntu-latest
+   needs: Build
    defaults:
      run:
        working-directory: IAC
@@ -61,4 +62,31 @@ jobs:
    steps:
      - name: Checkout code
        uses: actions/checkout@v6
-   
+     - name: Install AWS cli
+       uses: ankurk91/install-aws-cli-action@v1
+     - name: Configure AWS CLI
+       uses: aws-actions/configure-aws-credentials@v4
+       with:
+         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+         aws-region: ${{ vars.AWS_REGION }}
+
+     - name: Install terraform cli
+       uses: hashicorp/setup-terraform@v4
+       with:
+         terraform_version: "1.14.6"
+     - name: Formatting IAC
+       run : |
+         terraform fmt
+         terraform init
+         terraform validate
+     - name: initialize
+       run: |
+         terraform init
+     - name: Upload Terraform Plan
+       uses: actions/download-artifact@v4
+       with:
+         name: tfplan
+         plan: IAC/tfplan
+     - name: Terraform Apply
+       run: terraform apply tfplan -auto-approve

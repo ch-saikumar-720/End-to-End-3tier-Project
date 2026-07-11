@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
-          plan: IAC/tfplan
+          path: IAC/tfplan
   Apply:
     name: terraform apply
     runs-on: ubuntu-latest
@@ -87,6 +87,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
-          plan: IAC/tfplan
+          path: IAC/tfplan
       - name: Terraform Apply
         run: terraform apply tfplan -auto-approve

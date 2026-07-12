@@ -89,4 +89,4 @@ jobs:
           name: tfplan
           path: IAC
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform destory

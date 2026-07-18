@@ -55,7 +55,7 @@ resource "aws_eks_node_group" "this" {
 
   subnet_ids = var.subnet_ids
 
-  instance_types = ["t3.micro"]
+  instance_types = ["t3.large"]
 
   scaling_config {
     desired_size = 5
